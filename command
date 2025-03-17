@@ -1,0 +1,11 @@
+cover-agent \
+  --source-file-path="src/main/java/com/example/calculator/controller/CalculatorController.java" \
+  --test-file-path="src/test/java/com/example/calculator/controller/CalculatorControllerTest.java" \
+  --code-coverage-report-path="target/site/jacoco/jacoco.csv" \
+  --test-command="mvn clean test jacoco:report" \
+  --test-command-dir=$(pwd) \
+  --coverage-type="jacoco" \
+  --desired-coverage=70 \
+  --max-iterations=1 \
+  --model="openai/deepseek-chat" \
+  --api-base="https://api.deepseek.com"
