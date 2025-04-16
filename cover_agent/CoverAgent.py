@@ -40,7 +40,7 @@ class CoverAgent:
             FileNotFoundError: If required source files or directories are not found.
         """
         self.args = args
-        self.logger = CustomLogger.get_logger(__name__)
+        self.logger = CustomLogger.get_logger(__name__) # __name__ = cover_agent.CoverAgent
 
         self._validate_paths()
         self._duplicate_test_file()
