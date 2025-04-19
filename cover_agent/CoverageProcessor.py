@@ -241,52 +241,119 @@ class CoverageProcessor:
 
         return lines_covered, lines_missed, coverage_percentage
 
-    def parse_coverage_report_jacoco(self) -> Tuple[list, list, float]:
+    def parse_coverage_report_jacoco(
+            self, filename: str = None
+            ) -> Union[Tuple[list, list, float], dict]:
         """
         Parses a JaCoCo XML code coverage report to extract covered and missed line numbers for a specific file,
         and calculates the coverage percentage.
 
-        Returns: Tuple[list, list, float]: A tuple containing empty lists of covered and missed line numbers,
-        and the coverage percentage. The reason being the format of the report for jacoco gives the totals we do not
-        sum them up. to stick with the current contract of the code and to do little change returning empty arrays.
-        I expect this should bring up a discussion on introduce a factory for different CoverageProcessors. Where the
-        total coverage percentage is returned to be evaluated only.
+        for a specific file or for all files (if filename is None). Aggregates coverage data from
+        multiple <class> entries that share the same filename.
+
+        Args:
+            filename (str, optional): Filename to process. If None, process all files.
+
+        Returns:
+            If filename is provided, returns (covered_lines, missed_lines, coverage_percent).
+            If filename is None, returns a dict: { filename: (covered_lines, missed_lines, coverage_percent) }.
         """
-        lines_covered, lines_missed = [], []
-        source_file_extension = self.get_file_extension(self.src_file_path)
+        tree = ET.parse(self.file_path)
+        root = tree.getroot()
+        
+        if filename:
+            # Process a specific file
+            lines_covered, lines_missed = [], []
+            source_file_extension = self.get_file_extension(self.src_file_path)
 
-        package_name, class_name = "", ""
-        if source_file_extension == "java":
-            package_name, class_name = self.extract_package_and_class_java()
-        elif source_file_extension == "kt":
-            package_name, class_name = self.extract_package_and_class_kotlin()
+            package_name, class_name = "", ""
+            if source_file_extension == "java":
+                package_name, class_name = self.extract_package_and_class_java()
+            elif source_file_extension == "kt":
+                package_name, class_name = self.extract_package_and_class_kotlin()
+            else:
+                self.logger.warn(
+                    f"Unsupported Bytecode Language: {source_file_extension}. Using default Java logic."
+                )
+                package_name, class_name = self.extract_package_and_class_java()
+
+            file_extension = self.get_file_extension(self.file_path)
+
+            missed, covered = 0, 0
+            if file_extension == "xml":
+                lines_missed, lines_covered = self.parse_missed_covered_lines_jacoco_xml(
+                    class_name
+                )
+                missed, covered = len(lines_missed), len(lines_covered)
+            elif file_extension == "csv":
+                missed, covered = self.parse_missed_covered_lines_jacoco_csv(
+                    package_name, class_name
+                )
+            else:
+                raise ValueError(
+                    f"Unsupported JaCoCo code coverage report format: {file_extension}"
+                )
+
+            total_lines = missed + covered
+            coverage_percentage = (float(covered) / total_lines) if total_lines > 0 else 0
+
+            return lines_covered, lines_missed, coverage_percentage
         else:
-            self.logger.warn(
-                f"Unsupported Bytecode Language: {source_file_extension}. Using default Java logic."
-            )
-            package_name, class_name = self.extract_package_and_class_java()
-
-        file_extension = self.get_file_extension(self.file_path)
-
-        missed, covered = 0, 0
-        if file_extension == "xml":
-            lines_missed, lines_covered = self.parse_missed_covered_lines_jacoco_xml(
-                class_name
-            )
-            missed, covered = len(lines_missed), len(lines_covered)
-        elif file_extension == "csv":
-            missed, covered = self.parse_missed_covered_lines_jacoco_csv(
-                package_name, class_name
-            )
-        else:
-            raise ValueError(
-                f"Unsupported JaCoCo code coverage report format: {file_extension}"
-            )
-
-        total_lines = missed + covered
-        coverage_percentage = (float(covered) / total_lines) if total_lines > 0 else 0
-
-        return lines_covered, lines_missed, coverage_percentage
+            # Process all files
+            coverage_data = {}
+            file_extension = self.get_file_extension(self.file_path)
+            
+            if file_extension == "xml":
+                # Process all sourcefiles in the XML
+                for package in root.findall(".//package"):
+                    for sourcefile in package.findall("sourcefile"):
+                        sourcefile_name = sourcefile.get("name")
+                        missed_lines, covered_lines = [], []
+                        
+                        for line in sourcefile.findall("line"):
+                            line_nr = int(line.attrib.get("nr", 0))
+                            if line.attrib.get("mi") == "0":
+                                covered_lines.append(line_nr)
+                            else:
+                                missed_lines.append(line_nr)
+                        
+                        total_lines = len(missed_lines) + len(covered_lines)
+                        coverage_percentage = (
+                            float(len(covered_lines)) / total_lines
+                        ) if total_lines > 0 else 0
+                        
+                        coverage_data[sourcefile_name] = (
+                            covered_lines, missed_lines, coverage_percentage
+                        )
+            elif file_extension == "csv":
+                # Process all entries in the CSV
+                with open(self.file_path, "r") as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        try:
+                            class_name = row.get("CLASS", "")
+                            if not class_name:
+                                continue
+                                
+                            missed = int(row.get("LINE_MISSED", 0))
+                            covered = int(row.get("LINE_COVERED", 0))
+                            
+                            # We don't have actual line numbers in CSV, just counts
+                            # This is a limitation of this format
+                            coverage_percentage = (
+                                float(covered) / (missed + covered)
+                            ) if (missed + covered) > 0 else 0
+                            
+                            file_key = f"{row.get('PACKAGE', '')}.{class_name}"
+                            coverage_data[file_key] = ([], [], coverage_percentage)
+                        except (KeyError, ValueError) as e:
+                            self.logger.warning(f"Error processing CSV row: {str(e)}")
+            else:
+                raise ValueError(
+                    f"Unsupported JaCoCo code coverage report format: {file_extension}"
+                )
+                
+            return coverage_data
 
     def parse_missed_covered_lines_jacoco_xml(
         self, class_name: str

@@ -84,6 +84,11 @@ class LanguageServer:
             )
 
             return JediServer(config, logger, repository_root_path)
+        elif config.code_language == Language.JAVA:
+            from cover_agent.lsp_logic.multilspy.language_servers.eclipse_jdtls.eclipse_jdtls import (
+                EclipseJDTLS,
+            )
+            return EclipseJDTLS(config, logger, repository_root_path)
         else:
             logger.log(
                 f"Language {config.code_language} is not supported", logging.ERROR

@@ -318,7 +318,7 @@ def parse_args_full_repo():
     parser.add_argument(
         "--desired-coverage",
         type=int,
-        default=100,
+        default=70,
         help="The desired coverage percentage. Default: %(default)s.",
     )
     parser.add_argument(

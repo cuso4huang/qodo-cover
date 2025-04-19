@@ -17,14 +17,20 @@ cover-agent \
   --test-command="mvn clean test jacoco:report" \
   --test-command-dir=$(pwd) \
   --coverage-type="jacoco" \
-  --desired-coverage=70 \
+  --desired-coverage=100 \
   --max-iterations=1 \
   --model="openai/deepseek-chat" \
   --api-base="https://api.deepseek.com"
 
-
-
-
+  poetry run cover-agent-full-repo  \
+  --project-language="java"  \
+  --project-root="/home/cuso4/qodo-cover/templated_tests/java_spring_calculator" \
+  --code-coverage-report-path="/home/cuso4/qodo-cover/templated_tests/java_spring_calculator/target/site/jacoco/jacoco.csv" \
+  --test-command="mvn clean test jacoco:report"  \
+  --test-command-dir="/home/cuso4/qodo-cover/templated_tests/java_spring_calculator" \
+  --coverage-type="jacoco" \
+  --model="openai/deepseek-chat"  \
+  --api-base="https://api.deepseek.com" 
 
 poetry run cover-agent-full-repo \
   --project-language="python" \
@@ -33,3 +39,4 @@ poetry run cover-agent-full-repo \
   --test-command="coverage run -m pytest /home/cuso4/qodo-cover/templated_tests/python_fastapi/tests --cov=/home/cuso4/qodo-cover/templated_tests/python_fastapi/app --cov-report=xml --cov-report=term" \
   --model="openai/deepseek-chat" \
   --api-base="https://api.deepseek.com"
+

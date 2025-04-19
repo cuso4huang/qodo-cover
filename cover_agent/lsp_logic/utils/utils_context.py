@@ -104,7 +104,7 @@ async def find_test_file_context(args, lsp, test_file):
 async def initialize_language_server(args):
     logger = MultilspyLogger()
     config = MultilspyConfig.from_dict({"code_language": args.project_language})
-    if args.project_language == "python":
+    if args.project_language in ["python", "java"]:
         lsp = LanguageServer.create(config, logger, args.project_root)
         sleep(0.1)
         return lsp

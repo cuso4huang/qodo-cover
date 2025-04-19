@@ -130,7 +130,7 @@ class FileUtils:
         Downloads the file from the given URL to the given {target_path}
         """
         try:
-            response = requests.get(url, stream=True, timeout=60)
+            response = requests.get(url, stream=True, timeout=600)
             if response.status_code != 200:
                 logger.log(
                     f"Error downloading file '{url}': {response.status_code} {response.text}",

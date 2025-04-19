@@ -10,7 +10,7 @@ from cover_agent.lsp_logic.ContextHelper import ContextHelper
 async def run():
     args = parse_args_full_repo()
 
-    if args.project_language == "python":
+    if args.project_language in ["python", "java"]:
         context_helper = ContextHelper(args)
     else:
         raise NotImplementedError(
@@ -54,6 +54,7 @@ async def run():
                     args_copy.test_command_dir = args.project_root
                     args_copy.test_file_path = test_file
                     args_copy.included_files = context_files_include
+                    args_copy.coverage_type = args.coverage_type
                     agent = CoverAgent(args_copy)
                     agent.run()
                 except Exception as e:

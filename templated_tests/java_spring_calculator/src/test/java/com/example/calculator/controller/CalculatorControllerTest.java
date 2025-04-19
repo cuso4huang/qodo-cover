@@ -38,11 +38,28 @@ public class CalculatorControllerTest {
                 .andExpect(content().string("5.0"));
     }
 
+
     @Test
     public void testSubtract() throws Exception {
         mockMvc.perform(get("/subtract?a=5&b=4"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("1.0"));
     }
+
+    @Test
+    public void testDivide() throws Exception {
+        mockMvc.perform(get("/divide?a=6&b=3"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("2.0"));
+    }
+
+
+    @Test
+    public void testMultiply() throws Exception {
+        mockMvc.perform(get("/multiply?a=2&b=3"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("6.0"));
+    }
+
 
 }
