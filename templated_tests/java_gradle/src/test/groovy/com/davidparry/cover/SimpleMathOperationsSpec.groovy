@@ -25,4 +25,52 @@ class SimpleMathOperationsSpec extends Specification {
         then:
         assert result == 5
     }
+
+    def "should return correct value for fibonacci input"() {
+        given:
+        SimpleMathOperations operations = new SimpleMathOperations()
+    
+        when:
+        int result = operations.fibonacci(6)
+    
+        then:
+        assert result == 8
+    }
+
+
+    def "should return correct quotient when dividing two integers"() {
+        given:
+        SimpleMathOperations operations = new SimpleMathOperations()
+    
+        when:
+        double result = operations.divide(10, 2)
+    
+        then:
+        assert result == 5.0
+    }
+
+
+    def "should throw exception when dividing by zero"() {
+        given:
+        SimpleMathOperations operations = new SimpleMathOperations()
+    
+        when:
+        operations.divide(10, 0)
+    
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+
+    def "should return correct product when multiplying two positive integers"() {
+        given:
+        SimpleMathOperations operations = new SimpleMathOperations()
+    
+        when:
+        int result = operations.multiply(4, 5)
+    
+        then:
+        assert result == 20
+    }
+
 }

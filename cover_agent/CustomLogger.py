@@ -15,7 +15,10 @@ class CustomLogger:
             logging.Logger: The logger object.
 
         Note:
-            This method sets up the logger to handle all messages of DEBUG level and above. It adds a file handler to write log messages to a file specified by 'log_file_path' and a stream handler to output log messages to the console. The log file is overwritten on each run.
+            This method sets up the logger to handle all messages of DEBUG level and above. 
+            It adds a file handler to write log messages to a file specified by 'log_file_path' 
+            and a stream handler to output log messages to the console. The log file is 
+            overwritten on each run.
 
         Example:
             logger = CustomLogger.get_logger('my_logger')

@@ -28,9 +28,9 @@ class UnitTestGenerationAttempt(Base):
 
 class UnitTestDB:
     def __init__(self, db_connection_string):
-        self.engine = create_engine(db_connection_string)
-        Base.metadata.create_all(self.engine)
-        self.Session = scoped_session(sessionmaker(bind=self.engine))
+        self.engine = create_engine(db_connection_string) # 创建数据库引擎
+        Base.metadata.create_all(self.engine) # 创建所有表
+        self.Session = scoped_session(sessionmaker(bind=self.engine)) # 创建会话类，绑定到引擎
 
     def insert_attempt(self, test_result: dict):
         with self.Session() as session:
@@ -58,7 +58,8 @@ class UnitTestDB:
         Retrieve all unit test generation attempts from the database.
 
         Returns:
-            list: A list of dictionaries containing details of each attempt in the format required by the ReportGenerator.
+            list: A list of dictionaries containing details of each attempt
+              in the format required by the ReportGenerator.
         """
         with self.Session() as session:
             attempts = session.query(UnitTestGenerationAttempt).all()
